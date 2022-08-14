@@ -1,19 +1,26 @@
 #!./venv/bin/python
 
-from django.shortcuts import render
-from django.views.generic import View
-from dcim.models import Cable, Device, Interface, DeviceRole
-from ipam.models import VLAN
-from .models import SavedTopology
-from . import forms, filters
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.conf import settings
-from packaging import version
+# System imports
 import json
 import re
 
+# External imports
+from django.conf import settings
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.shortcuts import render
+from django.views.generic import View
 
+# Determine the netbox version
+from packaging import version
 NETBOX_CURRENT_VERSION = version.parse(settings.VERSION)
+
+# Netbox imports
+from dcim.models import Cable, Device, Interface, DeviceRole
+from ipam.models import VLAN
+
+# Local imports
+from .models import SavedTopology
+from . import forms, filters
 
 # Default NeXt UI icons
 SUPPORTED_ICONS = {
