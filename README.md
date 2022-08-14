@@ -1,6 +1,8 @@
 # NextBox UI Plugin
 
-A topology visualization plugin for [NetBox](https://github.com/netbox-community/netbox) powered by [NextUI](https://developer.cisco.com/site/neXt/) Toolkit. Netbox v2.8.0+ is required.
+A topology visualization plugin for [NetBox](https://github.com/netbox-community/netbox), Netbox v2.8.0+ is required.
+
+It is currently powered by [NextUI](https://developer.cisco.com/site/neXt/) Toolkit, this fork will change it to use diagrams.net instead as [NextUI is unfortunately not maintained any more](https://community.cisco.com/t5/tools/next-ui-maintained/m-p/4159513).
 
 # Installation
 
