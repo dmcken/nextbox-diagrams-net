@@ -256,8 +256,6 @@ def get_vlan_topology(nb_devices_qs, vlans):
                 if (direct_device_id in filtred_devices) or (direct_device_id in filtred_devices):
                     filtred_interfaces.append(interface)
 
-    
-
     devices = []
     for interface in filtred_interfaces:
         if interface.is_connectable:
@@ -268,7 +266,6 @@ def get_vlan_topology(nb_devices_qs, vlans):
                 termination_b_iface = interface_trace[-1][-1]
                 if termination_b_iface.device not in devices:
                     devices.append(termination_b_iface.device)
-         
 
     device_ids = [d.id for d in devices]
     for device in devices:
@@ -299,7 +296,7 @@ def get_vlan_topology(nb_devices_qs, vlans):
             })
         is_visible = not (device.device_role.slug in UNDISPLAYED_DEVICE_ROLE_SLUGS)
         device_roles.add((device.device_role.slug, device.device_role.name, is_visible))
-    
+
     mapped_links = []
     for interface in filtred_interfaces:
         if interface.is_connectable:
@@ -442,6 +439,10 @@ def get_topology(nb_devices_qs):
 
 
 def get_saved_topology(id):
+    '''Fetch a saved topology from the database.
+
+    id - Which topology to fetch.
+    '''
     topology_dict = {}
     device_roles = []
     device_tags = []
