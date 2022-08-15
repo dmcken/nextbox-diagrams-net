@@ -323,6 +323,12 @@ def get_vlan_topology(nb_devices_qs, vlans):
 
 
 def get_topology(nb_devices_qs):
+    '''Build the topology.
+
+
+    nb_devices_qs - netbox devices query set (a full list of all netbox devices that
+        match the user's search criteria).    
+    '''
     topology_dict = {'nodes': [], 'links': []}
     device_roles = set()
     all_device_tags = set()
