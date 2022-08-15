@@ -118,7 +118,7 @@ DEFAULT_ICON_ROLE_MAP = {
 }
 
 
-PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("nextbox_ui_plugin", dict())
+PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("nextbox_ui_plugin", {})
 
 MANUAL_LAYERS_SORT_ORDER = PLUGIN_SETTINGS.get("layers_sort_order", "")
 LAYERS_SORT_ORDER = MANUAL_LAYERS_SORT_ORDER or DEFAULT_LAYERS_SORT_ORDER
@@ -159,6 +159,8 @@ if INITIAL_LAYOUT not in ('vertical', 'horizontal', 'auto'):
 
 
 def if_shortname(ifname):
+    '''Test if the interface name is a short name?
+    '''
     for k, v in interface_full_name_map.items():
         if ifname.startswith(v):
             return ifname.replace(v, k)
@@ -167,6 +169,7 @@ def if_shortname(ifname):
 
 def get_node_layer_sort_preference(device_role):
     """Layer priority selection function
+
     Layer sort preference is designed as numeric value.
     This function identifies it by LAYERS_SORT_ORDER
     object position by default. With numeric values,
@@ -181,8 +184,8 @@ def get_node_layer_sort_preference(device_role):
 
 
 def get_icon_type(device_id):
-    """
-    Node icon getter function.
+    """Node icon getter function.
+
     Selection order:
     1. Based on 'icon_{icon_type}' tag in Netbox device
     2. Based on Netbox device type and ICON_MODEL_MAP
@@ -294,7 +297,7 @@ def get_vlan_topology(nb_devices_qs, vlans):
             'isPassive': device_is_passive,
             'tags': tags,
             })
-        is_visible = not (device.device_role.slug in UNDISPLAYED_DEVICE_ROLE_SLUGS)
+        is_visible = not device.device_role.slug in UNDISPLAYED_DEVICE_ROLE_SLUGS
         device_roles.add((device.device_role.slug, device.device_role.name, is_visible))
 
     mapped_links = []
@@ -314,10 +317,9 @@ def get_vlan_topology(nb_devices_qs, vlans):
                         'target': dest_cable[-1].device.id,
                         "srcIfName": if_shortname(source_cable[0].name),
                         "tgtIfName": if_shortname(dest_cable[-1].name),
-                        })
+                    })
 
     return topology_dict, device_roles, multi_cable_connections, list(all_device_tags)
-
 
 def get_topology(nb_devices_qs):
     '''Build the topology.
@@ -330,9 +332,12 @@ def get_topology(nb_devices_qs):
     device_roles = set()
     all_device_tags = set()
     multi_cable_connections = []
+    links = []
+
+    # If we have nothing to diagram, basic optimization
     if not nb_devices_qs:
         return topology_dict, device_roles, multi_cable_connections, list(all_device_tags)
-    links = []
+
     device_ids = [d.id for d in nb_devices_qs]
     for nb_device in nb_devices_qs:
         device_is_passive = False
@@ -385,6 +390,7 @@ def get_topology(nb_devices_qs):
             # Include links to discovered devices only
             if link._termination_b_device_id in device_ids:
                 links.append(link)
+    
     device_roles = list(device_roles)
     device_roles.sort(key=lambda i: get_node_layer_sort_preference(i[0]))
     all_device_tags = list(all_device_tags)
@@ -424,6 +430,7 @@ def get_topology(nb_devices_qs):
             if set([c[1] for c in cable_path]) in [set([c[1] for c in x]) for x in multi_cable_connections]:
                 continue
             multi_cable_connections.append(cable_path)
+
     for cable_path in multi_cable_connections:
         link_id = max(link_ids) + 1  # dummy ID for a logical link
         link_ids.add(link_id)
@@ -435,13 +442,13 @@ def get_topology(nb_devices_qs):
             "tgtIfName": if_shortname(cable_path[-1][2].name),
             "isLogicalMultiCable": True,
         })
+
     return topology_dict, device_roles, multi_cable_connections, all_device_tags
 
-
-def get_saved_topology(id):
+def get_saved_topology(topology_id):
     '''Fetch a saved topology from the database.
 
-    id - Which topology to fetch.
+    topology_id - Which topology to fetch.
     '''
     topology_dict = {}
     device_roles = []
@@ -449,7 +456,7 @@ def get_saved_topology(id):
     device_roles_detailed = []
     device_tags_detailed = []
     layout_context = {}
-    topology_data = SavedTopology.objects.get(id=id)
+    topology_data = SavedTopology.objects.get(id=topology_id)
     if not topology_data:
         return topology_dict, device_roles, device_tags, layout_context
     topology_dict = dict(topology_data.topology)
@@ -475,7 +482,6 @@ def get_saved_topology(id):
     layout_context = dict(topology_data.layout_context)
     return topology_dict, device_roles_detailed, device_tags_detailed, layout_context
 
-
 class TopologyView(PermissionRequiredMixin, View):
     """Generic Topology View"""
     permission_required = ('dcim.view_site', 'dcim.view_device', 'dcim.view_cable')
@@ -487,6 +493,7 @@ class TopologyView(PermissionRequiredMixin, View):
         template_name = 'nextbox_ui_plugin/topology.html'
 
     def get(self, request):
+        '''GET request handler'''
 
         if not request.GET:
             self.queryset = Device.objects.none()
